@@ -29,12 +29,6 @@ A proposta é aplicar os princípios SOLID e utilizar Design Patterns quando fiz
 
 ## Status
 
-Em desenvolvimento.
-
 ## Execução local
 
-As instruções de instalação, configuração do PostgreSQL e execução da aplicação serão documentadas conforme o desenvolvimento avançar.
-
 ## Observação
-
-Projeto acadêmico. Utilize dados fictícios durante o desenvolvimento.

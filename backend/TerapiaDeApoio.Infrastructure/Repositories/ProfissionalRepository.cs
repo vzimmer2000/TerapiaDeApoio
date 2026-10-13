@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TerapiaDeApoio.Application.Interfaces;
+using TerapiaDeApoio.Domain.Entities;
 using TerapiaDeApoio.Infrastructure.Data;
 
 namespace TerapiaDeApoio.Infrastructure.Repositories;
@@ -11,6 +12,35 @@ public class ProfissionalRepository : IProfissionalRepository
     public ProfissionalRepository(TerapiaDeApoioDbContext context)
     {
         _context = context;
+    }
+
+    public async Task<IReadOnlyList<Profissional>> ListarAsync(
+        CancellationToken cancellationToken)
+    {
+        return await _context.Profissionais
+            .AsNoTracking()
+            .OrderBy(p => p.Nome)
+            .ToListAsync(cancellationToken);
+    }
+
+    public Task<Profissional?> ObterPorIdAsync(
+        int id,
+        CancellationToken cancellationToken)
+    {
+        return _context.Profissionais
+            .AsNoTracking()
+            .FirstOrDefaultAsync(
+                p => p.Id == id,
+                cancellationToken);
+    }
+
+    public async Task AdicionarAsync(
+        Profissional profissional,
+        CancellationToken cancellationToken)
+    {
+        await _context.Profissionais.AddAsync(
+            profissional,
+            cancellationToken);
     }
 
     public Task<bool> ProfissionalOfereceServicoAsync(
@@ -41,5 +71,20 @@ public class ProfissionalRepository : IProfissionalRepository
                     && d.HoraInicio <= horaInicio
                     && d.HoraFim >= horaFim,
                 cancellationToken);
+    }
+
+    public async Task AdicionarServicoAsync(
+        ProfissionalServico associacao,
+        CancellationToken cancellationToken)
+    {
+        await _context.ProfissionalServicos.AddAsync(
+            associacao,
+            cancellationToken);
+    }
+
+    public async Task SalvarAlteracoesAsync(
+        CancellationToken cancellationToken)
+    {
+        await _context.SaveChangesAsync(cancellationToken);
     }
 }

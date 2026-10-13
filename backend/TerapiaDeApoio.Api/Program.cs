@@ -22,6 +22,7 @@ builder.Services.AddScoped<AgendamentoService>();
 
 builder.Services.AddScoped<ServicoService>();
 builder.Services.AddScoped<PacienteService>();
+builder.Services.AddScoped<ProfissionalService>();
 
 // Repositórios
 builder.Services.AddScoped<
@@ -40,6 +41,9 @@ builder.Services.AddScoped<
     IAgendamentoRepository,
     AgendamentoRepository>();
 
+builder.Services.AddScoped<
+    IProfissionalRepository,
+    ProfissionalRepository>();
 
 // Add services to the container.
 

@@ -1,5 +1,12 @@
 using Microsoft.EntityFrameworkCore;
+
 using TerapiaDeApoio.Infrastructure.Data;
+
+using TerapiaDeApoio.Application.Interfaces;
+
+using TerapiaDeApoio.Application.Services;
+
+using TerapiaDeApoio.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +17,25 @@ var connectionString =
 
 builder.Services.AddDbContext<TerapiaDeApoioDbContext>(
     options => options.UseNpgsql(connectionString));
+// Serviços da aplicação
+builder.Services.AddScoped<AgendamentoService>();
+
+// Repositórios
+builder.Services.AddScoped<
+    IPacienteRepository,
+    PacienteRepository>();
+
+builder.Services.AddScoped<
+    IProfissionalRepository,
+    ProfissionalRepository>();
+
+builder.Services.AddScoped<
+    IServicoRepository,
+    ServicoRepository>();
+
+builder.Services.AddScoped<
+    IAgendamentoRepository,
+    AgendamentoRepository>();
 
 
 // Add services to the container.

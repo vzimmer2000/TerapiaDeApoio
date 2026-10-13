@@ -1,0 +1,26 @@
+# Arquivos gerados pelo .NET
+**/bin/
+**/obj/
+.vs/
+.vscode/
+artifacts/
+TestResults/
+
+# Configurações específicas do usuário
+*.user
+*.suo
+
+# Segredos e configurações locais
+.env
+.env.*
+!.env.example
+**/appsettings.Development.json
+**/appsettings.Local.json
+
+# Dependências e arquivos gerados do frontend
+node_modules/
+dist/
+
+# Arquivos do sistema operacional
+Thumbs.db
+.DS_Store

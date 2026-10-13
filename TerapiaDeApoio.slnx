@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/Backend/">
+    <Project Path="backend/TerapiaDeApoio.Api/TerapiaDeApoio.Api.csproj" />
+    <Project Path="backend/TerapiaDeApoio.Domain/TerapiaDeApoio.Domain.csproj" />
+    <Project Path="backend/TerapiaDeApoio.Infrastructure/TerapiaDeApoio.Infrastructure.csproj" />
+  </Folder>
+</Solution>

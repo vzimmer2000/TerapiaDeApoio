@@ -21,6 +21,7 @@ builder.Services.AddDbContext<TerapiaDeApoioDbContext>(
 builder.Services.AddScoped<AgendamentoService>();
 
 builder.Services.AddScoped<ServicoService>();
+builder.Services.AddScoped<PacienteService>();
 
 // Repositórios
 builder.Services.AddScoped<

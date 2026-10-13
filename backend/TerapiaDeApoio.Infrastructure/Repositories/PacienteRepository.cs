@@ -14,6 +14,15 @@ public class PacienteRepository : IPacienteRepository
         _context = context;
     }
 
+    public async Task<IReadOnlyList<Paciente>> ListarAsync(
+        CancellationToken cancellationToken)
+    {
+        return await _context.Pacientes
+            .AsNoTracking()
+            .OrderBy(p => p.Nome)
+            .ToListAsync(cancellationToken);
+    }
+
     public Task<Paciente?> ObterPorIdAsync(
         int id,
         CancellationToken cancellationToken)
@@ -23,5 +32,20 @@ public class PacienteRepository : IPacienteRepository
             .FirstOrDefaultAsync(
                 p => p.Id == id,
                 cancellationToken);
+    }
+
+    public async Task AdicionarAsync(
+        Paciente paciente,
+        CancellationToken cancellationToken)
+    {
+        await _context.Pacientes.AddAsync(
+            paciente,
+            cancellationToken);
+    }
+
+    public async Task SalvarAlteracoesAsync(
+        CancellationToken cancellationToken)
+    {
+        await _context.SaveChangesAsync(cancellationToken);
     }
 }

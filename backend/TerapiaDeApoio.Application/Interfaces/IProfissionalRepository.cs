@@ -33,4 +33,20 @@ public interface IProfissionalRepository
 
     Task SalvarAlteracoesAsync(
         CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<DisponibilidadeProfissional>>
+ListarDisponibilidadesAsync(
+    int profissionalId,
+    CancellationToken cancellationToken);
+
+    Task<bool> ExisteConflitoDisponibilidadeAsync(
+        int profissionalId,
+        DayOfWeek diaSemana,
+        TimeOnly horaInicio,
+        TimeOnly horaFim,
+        CancellationToken cancellationToken);
+
+    Task AdicionarDisponibilidadeAsync(
+        DisponibilidadeProfissional disponibilidade,
+        CancellationToken cancellationToken);
 }

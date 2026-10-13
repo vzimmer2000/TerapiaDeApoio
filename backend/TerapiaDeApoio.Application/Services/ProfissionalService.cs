@@ -141,4 +141,91 @@ public class ProfissionalService
         await _profissionalRepository.SalvarAlteracoesAsync(
             cancellationToken);
     }
+    public async Task<IReadOnlyList<DisponibilidadeProfissional>>
+    ListarDisponibilidadesAsync(
+        int profissionalId,
+        CancellationToken cancellationToken)
+    {
+        var profissional = await _profissionalRepository.ObterPorIdAsync(
+            profissionalId,
+            cancellationToken);
+
+        if (profissional is null)
+        {
+            throw new KeyNotFoundException(
+                "Profissional não encontrado.");
+        }
+
+        return await _profissionalRepository.ListarDisponibilidadesAsync(
+            profissionalId,
+            cancellationToken);
+    }
+
+    public async Task<DisponibilidadeProfissional>
+        CadastrarDisponibilidadeAsync(
+            int profissionalId,
+            DayOfWeek diaSemana,
+            TimeOnly horaInicio,
+            TimeOnly horaFim,
+            CancellationToken cancellationToken)
+    {
+        var profissional = await _profissionalRepository.ObterPorIdAsync(
+            profissionalId,
+            cancellationToken);
+
+        if (profissional is null)
+        {
+            throw new KeyNotFoundException(
+                "Profissional não encontrado.");
+        }
+
+        if (!profissional.Ativo)
+        {
+            throw new InvalidOperationException(
+                "Não é possível cadastrar horários para um profissional inativo.");
+        }
+
+        if (!Enum.IsDefined(typeof(DayOfWeek), diaSemana))
+        {
+            throw new ArgumentException(
+                "O dia da semana informado é inválido.");
+        }
+
+        if (horaInicio >= horaFim)
+        {
+            throw new ArgumentException(
+                "O horário inicial deve ser anterior ao horário final.");
+        }
+
+        var existeConflito =
+            await _profissionalRepository.ExisteConflitoDisponibilidadeAsync(
+                profissionalId,
+                diaSemana,
+                horaInicio,
+                horaFim,
+                cancellationToken);
+
+        if (existeConflito)
+        {
+            throw new InvalidOperationException(
+                "O intervalo informado se sobrepõe a uma disponibilidade existente.");
+        }
+
+        var disponibilidade = new DisponibilidadeProfissional
+        {
+            ProfissionalId = profissionalId,
+            DiaSemana = diaSemana,
+            HoraInicio = horaInicio,
+            HoraFim = horaFim
+        };
+
+        await _profissionalRepository.AdicionarDisponibilidadeAsync(
+            disponibilidade,
+            cancellationToken);
+
+        await _profissionalRepository.SalvarAlteracoesAsync(
+            cancellationToken);
+
+        return disponibilidade;
+    }
 }

@@ -82,6 +82,47 @@ public class ProfissionalRepository : IProfissionalRepository
             cancellationToken);
     }
 
+    // NOVO: lista os horários cadastrados para um profissional.
+    public async Task<IReadOnlyList<DisponibilidadeProfissional>>
+        ListarDisponibilidadesAsync(
+            int profissionalId,
+            CancellationToken cancellationToken)
+    {
+        return await _context.DisponibilidadesProfissionais
+            .AsNoTracking()
+            .Where(d => d.ProfissionalId == profissionalId)
+            .OrderBy(d => d.DiaSemana)
+            .ThenBy(d => d.HoraInicio)
+            .ToListAsync(cancellationToken);
+    }
+
+    // NOVO: verifica se dois intervalos se sobrepõem.
+    public Task<bool> ExisteConflitoDisponibilidadeAsync(
+        int profissionalId,
+        DayOfWeek diaSemana,
+        TimeOnly horaInicio,
+        TimeOnly horaFim,
+        CancellationToken cancellationToken)
+    {
+        return _context.DisponibilidadesProfissionais
+            .AnyAsync(
+                d => d.ProfissionalId == profissionalId
+                    && d.DiaSemana == diaSemana
+                    && d.HoraInicio < horaFim
+                    && d.HoraFim > horaInicio,
+                cancellationToken);
+    }
+
+    // NOVO: adiciona uma disponibilidade ao contexto.
+    public async Task AdicionarDisponibilidadeAsync(
+        DisponibilidadeProfissional disponibilidade,
+        CancellationToken cancellationToken)
+    {
+        await _context.DisponibilidadesProfissionais.AddAsync(
+            disponibilidade,
+            cancellationToken);
+    }
+
     public async Task SalvarAlteracoesAsync(
         CancellationToken cancellationToken)
     {

@@ -1,7 +1,10 @@
-using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Linq;
 using TerapiaDeApoio.Api.DTOs;
-using TerapiaDeApoio.Application.Services;
 using TerapiaDeApoio.Domain.Entities;
+using Microsoft.AspNetCore.Mvc;
+using TerapiaDeApoio.Application.Services;
+
 
 namespace TerapiaDeApoio.Api.Controllers;
 
@@ -118,5 +121,109 @@ public class ProfissionaisController : ControllerBase
             profissional.Nome,
             profissional.Especialidade,
             profissional.Ativo);
+    }
+    [HttpGet("{id:int}/disponibilidades")]
+    public async Task<
+     ActionResult<IReadOnlyList<DisponibilidadeResponse>>>
+     ListarDisponibilidades(
+         int id,
+         CancellationToken cancellationToken)
+    {
+        try
+        {
+            var disponibilidades =
+                await _profissionalService.ListarDisponibilidadesAsync(
+                    id,
+                    cancellationToken);
+
+            var resposta = disponibilidades
+                .Select(MapearDisponibilidade)
+                .ToList();
+
+            return Ok(resposta);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new ProblemDetails
+            {
+                Title = "Profissional não encontrado",
+                Detail = ex.Message,
+                Status = StatusCodes.Status404NotFound
+            });
+        }
+    }
+
+    [HttpPost("{id:int}/disponibilidades")]
+    public async Task<IActionResult> CadastrarDisponibilidade(
+        int id,
+        [FromBody] CriarDisponibilidadeRequest request,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var disponibilidade =
+                await _profissionalService.CadastrarDisponibilidadeAsync(
+                    id,
+                    (DayOfWeek)request.DiaSemana!.Value,
+                    request.HoraInicio!.Value,
+                    request.HoraFim!.Value,
+                    cancellationToken);
+
+            var resposta = MapearDisponibilidade(disponibilidade);
+
+            return CreatedAtAction(
+                nameof(ListarDisponibilidades),
+                new { id },
+                resposta);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new ProblemDetails
+            {
+                Title = "Profissional não encontrado",
+                Detail = ex.Message,
+                Status = StatusCodes.Status404NotFound
+            });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Dados inválidos",
+                Detail = ex.Message,
+                Status = StatusCodes.Status400BadRequest
+            });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new ProblemDetails
+            {
+                Title = "Conflito de disponibilidade",
+                Detail = ex.Message,
+                Status = StatusCodes.Status409Conflict
+            });
+        }
+    }
+
+    private static DisponibilidadeResponse MapearDisponibilidade(
+        DisponibilidadeProfissional disponibilidade)
+    {
+        var dia = disponibilidade.DiaSemana switch
+        {
+            DayOfWeek.Sunday => "Domingo",
+            DayOfWeek.Monday => "Segunda-feira",
+            DayOfWeek.Tuesday => "Terça-feira",
+            DayOfWeek.Wednesday => "Quarta-feira",
+            DayOfWeek.Thursday => "Quinta-feira",
+            DayOfWeek.Friday => "Sexta-feira",
+            DayOfWeek.Saturday => "Sábado",
+            _ => "Desconhecido"
+        };
+
+        return new DisponibilidadeResponse(
+            disponibilidade.Id,
+            dia,
+            disponibilidade.HoraInicio,
+            disponibilidade.HoraFim);
     }
 }

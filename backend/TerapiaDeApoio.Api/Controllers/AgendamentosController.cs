@@ -1,0 +1,134 @@
+using Microsoft.AspNetCore.Mvc;
+using TerapiaDeApoio.Api.DTOs;
+using TerapiaDeApoio.Application.Services;
+using TerapiaDeApoio.Domain.Entities;
+
+namespace TerapiaDeApoio.Api.Controllers;
+
+[ApiController]
+[Route("api/agendamentos")]
+public class AgendamentosController : ControllerBase
+{
+    private readonly AgendamentoService _agendamentoService;
+
+    public AgendamentosController(
+        AgendamentoService agendamentoService)
+    {
+        _agendamentoService = agendamentoService;
+    }
+
+    [HttpPost]
+    public async Task<ActionResult<AgendamentoResponse>> Criar(
+        [FromBody] CriarAgendamentoRequest request,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var agendamento =
+                await _agendamentoService.AgendarAsync(
+                    request.PacienteId,
+                    request.ProfissionalId,
+                    request.ServicoId,
+                    request.DataHoraInicio!.Value,
+                    cancellationToken);
+
+            var resposta = MapearResposta(agendamento);
+
+            return CreatedAtAction(
+                nameof(ObterPorId),
+                new { id = agendamento.Id },
+                resposta);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new ProblemDetails
+            {
+                Title = "Registro não encontrado",
+                Detail = ex.Message,
+                Status = StatusCodes.Status404NotFound
+            });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Dados inválidos",
+                Detail = ex.Message,
+                Status = StatusCodes.Status400BadRequest
+            });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new ProblemDetails
+            {
+                Title = "Não foi possível realizar o agendamento",
+                Detail = ex.Message,
+                Status = StatusCodes.Status409Conflict
+            });
+        }
+    }
+
+    [HttpGet("{id:int}")]
+    public async Task<ActionResult<AgendamentoResponse>> ObterPorId(
+        int id,
+        CancellationToken cancellationToken)
+    {
+        var agendamento =
+            await _agendamentoService.ObterPorIdAsync(
+                id,
+                cancellationToken);
+
+        if (agendamento is null)
+        {
+            return NotFound();
+        }
+
+        return Ok(MapearResposta(agendamento));
+    }
+
+    [HttpPost("{id:int}/cancelar")]
+    public async Task<IActionResult> Cancelar(
+        int id,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await _agendamentoService.CancelarAsync(
+                id,
+                cancellationToken);
+
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new ProblemDetails
+            {
+                Title = "Agendamento não encontrado",
+                Detail = ex.Message,
+                Status = StatusCodes.Status404NotFound
+            });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new ProblemDetails
+            {
+                Title = "Não foi possível cancelar",
+                Detail = ex.Message,
+                Status = StatusCodes.Status409Conflict
+            });
+        }
+    }
+
+    private static AgendamentoResponse MapearResposta(
+        Agendamento agendamento)
+    {
+        return new AgendamentoResponse(
+            agendamento.Id,
+            agendamento.PacienteId,
+            agendamento.ProfissionalId,
+            agendamento.ServicoId,
+            agendamento.DataHoraInicio,
+            agendamento.DataHoraFim,
+            agendamento.Status.ToString());
+    }
+}

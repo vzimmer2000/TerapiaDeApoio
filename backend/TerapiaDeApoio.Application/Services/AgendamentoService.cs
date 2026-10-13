@@ -164,4 +164,12 @@ public class AgendamentoService
         await _agendamentoRepository.SalvarAlteracoesAsync(
             cancellationToken);
     }
+    public Task<Agendamento?> ObterPorIdAsync(
+    int id,
+    CancellationToken cancellationToken)
+    {
+        return _agendamentoRepository.ObterPorIdAsync(
+            id,
+            cancellationToken);
+    }
 }

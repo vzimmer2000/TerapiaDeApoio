@@ -1,5 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 
+
+using Microsoft.Extensions.FileProviders;
+
 using TerapiaDeApoio.Infrastructure.Data;
 
 using TerapiaDeApoio.Application.Interfaces;
@@ -18,11 +21,13 @@ var connectionString =
 builder.Services.AddDbContext<TerapiaDeApoioDbContext>(
     options => options.UseNpgsql(connectionString));
 // Serviços da aplicação
+
 builder.Services.AddScoped<AgendamentoService>();
 
 builder.Services.AddScoped<ServicoService>();
 builder.Services.AddScoped<PacienteService>();
 builder.Services.AddScoped<ProfissionalService>();
+
 
 // Repositórios
 builder.Services.AddScoped<
@@ -52,6 +57,28 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+var frontendPath = Path.GetFullPath(
+    Path.Combine(
+        builder.Environment.ContentRootPath,
+        "../../frontend"));
+
+if (!Directory.Exists(frontendPath))
+{
+    throw new DirectoryNotFoundException(
+        $"A pasta do frontend não foi encontrada: {frontendPath}");
+}
+
+var frontendProvider = new PhysicalFileProvider(frontendPath);
+
+app.UseDefaultFiles(new DefaultFilesOptions
+{
+    FileProvider = frontendProvider
+});
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = frontendProvider
+});
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta
+      name="description"
+      content="Terapia de Apoio: serviços de fisioterapia e agendamento de atendimentos."
+    />
+
+    <title>Terapia de Apoio | Cuidado e movimento</title>
+
+    <link rel="stylesheet" href="/css/styles.css" />
+    <script src="/js/main.js" defer></script>
+  </head>
+
+  <body>
+    <header class="site-header">
+      <nav class="navbar container" aria-label="Navegação principal">
+        <a href="#" class="brand" aria-label="Terapia de Apoio - início">
+          <span class="brand-mark">TA</span>
+
+          <span class="brand-copy">
+            <strong>Terapia de Apoio</strong>
+            <small>Movimento e bem-estar</small>
+          </span>
+        </a>
+
+        <div class="nav-links">
+          <a href="#servicos">Serviços</a>
+          <a href="#pacientes">Pacientes</a>
+          <a href="#agendar" class="nav-cta">Agendar sessão</a>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container hero-grid">
+          <div class="hero-content">
+            <span class="eyebrow"> Cuidado individualizado </span>
+
+            <h1>
+              Seu bem-estar começa com
+              <span>um novo movimento.</span>
+            </h1>
+
+            <p class="hero-description">
+              Encontre o atendimento ideal para você. Consulte nossos serviços e
+              organize sua próxima sessão na Terapia de Apoio.
+            </p>
+
+            <div class="hero-actions">
+              <a href="#agendar" class="button button-primary">
+                Agendar atendimento
+              </a>
+
+              <a href="#servicos" class="button button-outline">
+                Conhecer serviços
+              </a>
+            </div>
+
+            <div class="hero-note">
+              <span class="status-dot"></span>
+              Atendimento mediante agendamento
+            </div>
+          </div>
+
+          <aside class="hero-panel">
+            <div class="hero-panel-icon" aria-hidden="true">✳</div>
+
+            <p class="panel-label">Terapia de Apoio</p>
+
+            <h2>Cuidar hoje. Evoluir a cada sessão.</h2>
+
+            <p>
+              Um espaço dedicado à mobilidade, à reabilitação e à qualidade de
+              vida.
+            </p>
+
+            <div class="panel-divider"></div>
+
+            <div class="panel-detail">
+              <span>01</span>
+              <div>
+                <strong>Escolha seu serviço</strong>
+                <small>Conheça as modalidades</small>
+              </div>
+            </div>
+
+            <div class="panel-detail">
+              <span>02</span>
+              <div>
+                <strong>Organize seu horário</strong>
+                <small>Consulte a disponibilidade</small>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="section container" id="servicos">
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow">Nossas modalidades</span>
+            <h2>Encontre seu atendimento</h2>
+          </div>
+
+          <p>
+            Conheça os serviços cadastrados pela clínica. As informações são
+            carregadas diretamente da API.
+          </p>
+        </div>
+
+        <div id="servicos-lista" class="services-grid">
+          <p class="loading-message">Carregando serviços...</p>
+        </div>
+      </section>
+
+      <section class="section booking-section">
+        <div class="container">
+          <div class="section-heading">
+            <div>
+              <span class="eyebrow">Atendimento organizado</span>
+              <h2>Vamos preparar sua sessão?</h2>
+            </div>
+
+            <p>
+              Cadastre um paciente e depois selecione os dados necessários para
+              solicitar um agendamento.
+            </p>
+          </div>
+
+          <div class="forms-grid">
+            <section class="form-card" id="pacientes">
+              <div class="form-card-heading">
+                <span class="step-number">01</span>
+
+                <div>
+                  <h3>Cadastro de paciente</h3>
+                  <p>Preencha os dados para registrar o paciente.</p>
+                </div>
+              </div>
+
+              <form id="form-paciente">
+                <div class="field">
+                  <label for="paciente-nome">Nome completo</label>
+
+                  <input
+                    id="paciente-nome"
+                    name="nome"
+                    type="text"
+                    maxlength="120"
+                    autocomplete="name"
+                    placeholder="Ex.: Maria da Silva"
+                    required
+                  />
+                </div>
+
+                <div class="field">
+                  <label for="paciente-telefone">Telefone</label>
+
+                  <input
+                    id="paciente-telefone"
+                    name="telefone"
+                    type="tel"
+                    maxlength="30"
+                    autocomplete="tel"
+                    placeholder="(54) 99999-0000"
+                    required
+                  />
+                </div>
+
+                <div class="field">
+                  <label for="paciente-email">
+                    E-mail <span class="optional">(opcional)</span>
+                  </label>
+
+                  <input
+                    id="paciente-email"
+                    name="email"
+                    type="email"
+                    maxlength="254"
+                    autocomplete="email"
+                    placeholder="voce@exemplo.com"
+                  />
+                </div>
+
+                <button type="submit" class="button button-primary button-full">
+                  Cadastrar paciente
+                </button>
+
+                <p
+                  id="paciente-feedback"
+                  class="feedback"
+                  role="status"
+                  aria-live="polite"
+                ></p>
+              </form>
+            </section>
+
+            <section class="form-card form-card-highlight" id="agendar">
+              <div class="form-card-heading">
+                <span class="step-number">02</span>
+
+                <div>
+                  <h3>Solicitar agendamento</h3>
+                  <p>Escolha o atendimento e o horário desejado.</p>
+                </div>
+              </div>
+
+              <form id="form-agendamento">
+                <div class="field">
+                  <label for="agendamento-paciente">Paciente</label>
+
+                  <select id="agendamento-paciente" required>
+                    <option value="" selected disabled>
+                      Selecione um paciente
+                    </option>
+                  </select>
+                </div>
+
+                <div class="field">
+                  <label for="agendamento-servico">Serviço</label>
+
+                  <select id="agendamento-servico" required>
+                    <option value="" selected disabled>
+                      Selecione um serviço
+                    </option>
+                  </select>
+                </div>
+
+                <div class="field">
+                  <label for="agendamento-profissional">Profissional</label>
+
+                  <select id="agendamento-profissional" required>
+                    <option value="" selected disabled>
+                      Selecione um profissional
+                    </option>
+                  </select>
+                </div>
+
+                <div class="field">
+                  <label for="agendamento-data">Data e horário</label>
+
+                  <input id="agendamento-data" type="datetime-local" required />
+                </div>
+
+                <p class="form-hint">
+                  A solicitação será validada pela API conforme a
+                  disponibilidade do profissional e a duração do serviço.
+                </p>
+
+                <button type="submit" class="button button-primary button-full">
+                  Confirmar agendamento
+                </button>
+
+                <p
+                  id="agendamento-feedback"
+                  class="feedback"
+                  role="status"
+                  aria-live="polite"
+                ></p>
+              </form>
+            </section>
+          </div>
+
+          <div
+            id="sistema-feedback"
+            class="system-feedback"
+            role="status"
+            aria-live="polite"
+          ></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-content">
+        <a href="#" class="brand brand-footer">
+          <span class="brand-mark">TA</span>
+
+          <span class="brand-copy">
+            <strong>Terapia de Apoio</strong>
+            <small>Movimento e bem-estar</small>
+          </span>
+        </a>
+
+        <p>Projeto acadêmico de agendamento de atendimentos.</p>
+      </div>
+    </footer>
+  </body>
+</html>

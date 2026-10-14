@@ -240,12 +240,35 @@
                     </option>
                   </select>
                 </div>
+                <div class="field">
+                  <label for="agendamento-data">Data do atendimento</label>
+
+                  <input id="agendamento-data" type="date" required />
+                </div>
 
                 <div class="field">
-                  <label for="agendamento-data">Data e horário</label>
+                  <label for="agendamento-horario">Horários disponíveis</label>
 
-                  <input id="agendamento-data" type="datetime-local" required />
+                  <select id="agendamento-horario" required disabled>
+                    <option value="">
+                      Selecione serviço, profissional e data
+                    </option>
+                  </select>
                 </div>
+
+                <p
+                  id="horarios-feedback"
+                  class="feedback"
+                  role="status"
+                  aria-live="polite"
+                ></p>
+
+                <p
+                  id="horarios-feedback"
+                  class="feedback"
+                  role="status"
+                  aria-live="polite"
+                ></p>
 
                 <p class="form-hint">
                   A solicitação será validada pela API conforme a

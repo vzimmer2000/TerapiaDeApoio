@@ -128,4 +128,17 @@ public class ProfissionalRepository : IProfissionalRepository
     {
         await _context.SaveChangesAsync(cancellationToken);
     }
+    public async Task<IReadOnlyList<Profissional>> ListarPorServicoAsync(
+    int servicoId,
+    CancellationToken cancellationToken)
+    {
+        return await _context.Profissionais
+            .AsNoTracking()
+            .Where(p =>
+                p.Ativo &&
+                p.ProfissionalServicos.Any(
+                    ps => ps.ServicoId == servicoId && ps.Servico.Ativo))
+            .OrderBy(p => p.Nome)
+            .ToListAsync(cancellationToken);
+    }
 }

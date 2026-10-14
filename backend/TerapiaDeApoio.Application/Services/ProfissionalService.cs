@@ -228,4 +228,34 @@ public class ProfissionalService
 
         return disponibilidade;
     }
+    public async Task<IReadOnlyList<Profissional>> ListarPorServicoAsync(
+    int servicoId,
+    CancellationToken cancellationToken)
+    {
+        if (servicoId <= 0)
+        {
+            throw new ArgumentException(
+                "Informe um serviço válido.");
+        }
+
+        var servico = await _servicoRepository.ObterPorIdAsync(
+            servicoId,
+            cancellationToken);
+
+        if (servico is null)
+        {
+            throw new KeyNotFoundException(
+                "Serviço não encontrado.");
+        }
+
+        if (!servico.Ativo)
+        {
+            throw new InvalidOperationException(
+                "O serviço está inativo.");
+        }
+
+        return await _profissionalRepository.ListarPorServicoAsync(
+            servicoId,
+            cancellationToken);
+    }
 }

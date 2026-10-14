@@ -49,4 +49,8 @@ ListarDisponibilidadesAsync(
     Task AdicionarDisponibilidadeAsync(
         DisponibilidadeProfissional disponibilidade,
         CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<Profissional>> ListarPorServicoAsync(
+    int servicoId,
+    CancellationToken cancellationToken);
 }

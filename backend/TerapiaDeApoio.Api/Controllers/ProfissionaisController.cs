@@ -22,12 +22,56 @@ public class ProfissionaisController : ControllerBase
 
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<ProfissionalResponse>>> Listar(
+        [FromQuery] int? servicoId,
         CancellationToken cancellationToken)
     {
-        var profissionais = await _profissionalService.ListarAsync(
-            cancellationToken);
+        try
+        {
+            IReadOnlyList<Profissional> profissionais;
 
-        return Ok(profissionais.Select(MapearResposta).ToList());
+            if (servicoId.HasValue)
+            {
+                profissionais =
+                    await _profissionalService.ListarPorServicoAsync(
+                        servicoId.Value,
+                        cancellationToken);
+            }
+            else
+            {
+                profissionais =
+                    await _profissionalService.ListarAsync(
+                        cancellationToken);
+            }
+
+            return Ok(profissionais.Select(MapearResposta).ToList());
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new ProblemDetails
+            {
+                Title = "Serviço não encontrado",
+                Detail = ex.Message,
+                Status = StatusCodes.Status404NotFound
+            });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Parâmetros inválidos",
+                Detail = ex.Message,
+                Status = StatusCodes.Status400BadRequest
+            });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new ProblemDetails
+            {
+                Title = "Serviço indisponível",
+                Detail = ex.Message,
+                Status = StatusCodes.Status409Conflict
+            });
+        }
     }
 
     [HttpGet("{id:int}")]
@@ -226,4 +270,5 @@ public class ProfissionaisController : ControllerBase
             disponibilidade.HoraInicio,
             disponibilidade.HoraFim);
     }
+
 }

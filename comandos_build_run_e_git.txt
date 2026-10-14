@@ -1,0 +1,14 @@
+Compilar:
+dotnet build TerapiaDeApoio.slnx
+
+rodar: 
+dotnet run --project backend/TerapiaDeApoio.Api
+
+git:
+
+git add . 
+git commit m ""
+git push
+
+pagina na web:
+http://localhost:5073/

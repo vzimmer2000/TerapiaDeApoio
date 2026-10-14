@@ -4,7 +4,10 @@ const servicosLista = document.getElementById("servicos-lista");
 const pacienteSelect = document.getElementById("agendamento-paciente");
 const servicoSelect = document.getElementById("agendamento-servico");
 const profissionalSelect = document.getElementById("agendamento-profissional");
-const dataHoraInput = document.getElementById("agendamento-data");
+
+const dataInput = document.getElementById("agendamento-data");
+const horarioSelect = document.getElementById("agendamento-horario");
+const horariosFeedback = document.getElementById("horarios-feedback");
 
 const pacienteForm = document.getElementById("form-paciente");
 const agendamentoForm = document.getElementById("form-agendamento");
@@ -158,20 +161,46 @@ async function carregarServicos() {
     );
 }
 
-async function carregarProfissionais() {
-    const profissionais = await apiRequest("/api/profissionais");
+async function carregarProfissionais(
+    servicoId = null,
+    profissionalSelecionado = null
+) {
+    const endpoint = servicoId
+        ? `/api/profissionais?servicoId=${encodeURIComponent(servicoId)}`
+        : "/api/profissionais";
+
+    const profissionais = await apiRequest(endpoint);
 
     const ativos = profissionais.filter(
         (profissional) => profissional.ativo
     );
 
+    const textoInicial = ativos.length > 0
+        ? "Selecione um profissional"
+        : servicoId
+            ? "Nenhum profissional oferece este serviço"
+            : "Nenhum profissional cadastrado";
+
     preencherSelect(
         profissionalSelect,
         ativos,
-        "Selecione um profissional",
+        textoInicial,
         (profissional) =>
             `${profissional.nome} — ${profissional.especialidade}`
     );
+
+    // Preserva a seleção se o profissional continuar na lista filtrada.
+    if (
+        profissionalSelecionado &&
+        ativos.some(
+            (profissional) =>
+                String(profissional.id) === String(profissionalSelecionado)
+        )
+    ) {
+        profissionalSelect.value = String(profissionalSelecionado);
+    }
+
+    return ativos;
 }
 
 async function carregarPacientes(idSelecionado = null) {
@@ -212,6 +241,111 @@ async function carregarDadosIniciais() {
         console.error("Falha ao carregar os dados da API:", erro);
     }
 }
+let consultaHorariosAtual = 0;
+
+async function carregarHorariosDisponiveis() {
+    const numeroConsulta = ++consultaHorariosAtual;
+
+    const data = dataInput.value;
+    const profissionalId = profissionalSelect.value;
+    const servicoId = servicoSelect.value;
+
+    const opcaoInicial = document.createElement("option");
+    opcaoInicial.value = "";
+    opcaoInicial.disabled = true;
+    opcaoInicial.selected = true;
+    opcaoInicial.textContent = "Selecione um horário";
+
+    horarioSelect.replaceChildren(opcaoInicial);
+    horarioSelect.disabled = true;
+
+    limparFeedback(horariosFeedback);
+
+    const camposPendentes = [];
+
+    if (!servicoId) camposPendentes.push("serviço");
+    if (!profissionalId) camposPendentes.push("profissional");
+    if (!data) camposPendentes.push("data");
+
+    if (camposPendentes.length > 0) {
+        if (servicoId || profissionalId || data) {
+            mostrarFeedback(
+                horariosFeedback,
+                `Selecione ${camposPendentes.join(", ")} para consultar os horários.`,
+                "info"
+            );
+        }
+
+        return;
+    }
+
+    mostrarFeedback(
+        horariosFeedback,
+        "Consultando horários disponíveis...",
+        "info"
+    );
+
+    const parametros = new URLSearchParams({
+        profissionalId,
+        servicoId,
+        data
+    });
+
+    try {
+        const horarios = await apiRequest(
+            `/api/agendamentos/disponibilidade?${parametros.toString()}`
+        );
+
+        // Ignora respostas antigas caso o usuário altere os campos
+        // enquanto uma consulta anterior ainda estiver em andamento.
+        if (numeroConsulta !== consultaHorariosAtual) {
+            return;
+        }
+
+        if (!Array.isArray(horarios)) {
+            throw new Error("A API retornou uma lista de horários inválida.");
+        }
+
+        if (horarios.length === 0) {
+            mostrarFeedback(
+                horariosFeedback,
+                "Nenhum horário disponível. Escolha outra data ou profissional.",
+                "info"
+            );
+
+            return;
+        }
+
+        horarios.forEach((horario) => {
+            const opcao = document.createElement("option");
+
+            // A API retorna TimeOnly, normalmente como "09:00:00".
+            opcao.value = horario;
+            opcao.textContent = horario.slice(0, 5);
+
+            horarioSelect.appendChild(opcao);
+        });
+
+        horarioSelect.disabled = false;
+
+        mostrarFeedback(
+            horariosFeedback,
+            `${horarios.length} horário(s) disponível(is). Selecione uma opção.`,
+            "success"
+        );
+    } catch (erro) {
+        if (numeroConsulta !== consultaHorariosAtual) {
+            return;
+        }
+
+        mostrarFeedback(
+            horariosFeedback,
+            erro.message,
+            "error"
+        );
+    }
+}
+
 
 // Cadastro de paciente.
 
@@ -257,27 +391,29 @@ pacienteForm.addEventListener("submit", async (evento) => {
 });
 
 // Criação do agendamento.
-
 agendamentoForm.addEventListener("submit", async (evento) => {
     evento.preventDefault();
     limparFeedback(agendamentoFeedback);
 
     const botaoTexto = "Confirmar agendamento";
 
-    configurarBotao(agendamentoForm, botaoTexto, true);
+    const data = dataInput.value;
+    const horario = horarioSelect.value;
 
-    const dataHoraInicio = dataHoraInput.value;
-
-    if (!dataHoraInicio) {
+    if (!data || !horario || horarioSelect.disabled) {
         mostrarFeedback(
             agendamentoFeedback,
-            "Selecione uma data e um horário.",
+            "Selecione uma data e um horário disponível antes de continuar.",
             "error"
         );
 
-        configurarBotao(agendamentoForm, botaoTexto, false);
         return;
     }
+
+    configurarBotao(agendamentoForm, botaoTexto, true);
+
+    // Combina data e horário sem acrescentar fuso horário.
+    const dataHoraInicio = `${data}T${horario}`;
 
     const body = {
         pacienteId: Number(pacienteSelect.value),
@@ -301,8 +437,9 @@ agendamentoForm.addEventListener("submit", async (evento) => {
 
         const fim = new Date(
             agendamento.dataHoraFim
-        ).toLocaleString("pt-BR", {
-            timeStyle: "short"
+        ).toLocaleTimeString("pt-BR", {
+            hour: "2-digit",
+            minute: "2-digit"
         });
 
         mostrarFeedback(
@@ -311,7 +448,11 @@ agendamentoForm.addEventListener("submit", async (evento) => {
             "success"
         );
 
-        agendamentoForm.reset();
+        // Mantém paciente, serviço e profissional selecionados,
+        // mas limpa a data e os horários para a próxima reserva.
+        dataInput.value = "";
+
+        await carregarHorariosDisponiveis();
     } catch (erro) {
         mostrarFeedback(
             agendamentoFeedback,
@@ -323,17 +464,48 @@ agendamentoForm.addEventListener("submit", async (evento) => {
     }
 });
 
-// Impede que o navegador ofereça horários anteriores ao momento atual.
 
+// Impede que o navegador ofereça horários anteriores ao momento atual.
 function configurarDataMinima() {
     const agora = new Date();
 
+    // Converte o instante atual para a data local antes de formatar.
     agora.setMinutes(
         agora.getMinutes() - agora.getTimezoneOffset()
     );
 
-    dataHoraInput.min = agora.toISOString().slice(0, 16);
+    dataInput.min = agora.toISOString().slice(0, 10);
 }
+servicoSelect.addEventListener("change", async () => {
+    const profissionalAnterior = profissionalSelect.value;
+
+    try {
+        await carregarProfissionais(
+            servicoSelect.value,
+            profissionalAnterior
+        );
+    } catch (erro) {
+        mostrarFeedback(
+            horariosFeedback,
+            `Não foi possível carregar os profissionais: ${erro.message}`,
+            "error"
+        );
+
+        return;
+    }
+
+    await carregarHorariosDisponiveis();
+});
+
+profissionalSelect.addEventListener(
+    "change",
+    carregarHorariosDisponiveis
+);
+
+dataInput.addEventListener(
+    "change",
+    carregarHorariosDisponiveis
+);
 
 configurarDataMinima();
 carregarDadosIniciais();

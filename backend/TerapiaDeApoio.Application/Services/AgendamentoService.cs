@@ -6,7 +6,9 @@ using TerapiaDeApoio.Domain.Entities;
 namespace TerapiaDeApoio.Application.Services;
 
 public class AgendamentoService
+
 {
+    private const int CapacidadeMaximaSimultanea = 3;
     private readonly IPacienteRepository _pacienteRepository;
     private readonly IProfissionalRepository _profissionalRepository;
     private readonly IServicoRepository _servicoRepository;
@@ -114,20 +116,6 @@ public class AgendamentoService
         }
 
         // 7. Impedir sobreposição com outro atendimento.
-        var existeConflito =
-            await _agendamentoRepository.ExisteConflitoAsync(
-                profissionalId,
-                inicio,
-                fim,
-                cancellationToken);
-
-        if (existeConflito)
-        {
-            throw new InvalidOperationException(
-                "O profissional já possui um atendimento nesse intervalo.");
-        }
-
-        // 8. Criar e persistir o agendamento.
         var agendamento = new Agendamento
         {
             PacienteId = pacienteId,
@@ -137,14 +125,20 @@ public class AgendamentoService
             DataHoraFim = fim
         };
 
-        await _agendamentoRepository.AdicionarAsync(
-            agendamento,
-            cancellationToken);
+        var foiAdicionado =
+            await _agendamentoRepository.AdicionarSeHouverCapacidadeAsync(
+                agendamento,
+                CapacidadeMaximaSimultanea,
+                cancellationToken);
 
-        await _agendamentoRepository.SalvarAlteracoesAsync(
-            cancellationToken);
+        if (!foiAdicionado)
+        {
+            throw new InvalidOperationException(
+                "O profissional já atingiu a capacidade de três pacientes simultâneos nesse intervalo.");
+        }
 
         return agendamento;
+
     }
 
     public async Task CancelarAsync(
@@ -309,14 +303,15 @@ public class AgendamentoService
                 // Não oferecer horários que já passaram.
                 if (inicio > DateTime.Now)
                 {
-                    var existeConflito =
-                        await _agendamentoRepository.ExisteConflitoAsync(
-                            profissionalId,
-                            inicio,
-                            fim,
-                            cancellationToken);
+                    var possuiCapacidade =
+    await _agendamentoRepository.PossuiCapacidadeAsync(
+        profissionalId,
+        inicio,
+        fim,
+        CapacidadeMaximaSimultanea,
+        cancellationToken);
 
-                    if (!existeConflito)
+                    if (possuiCapacidade)
                     {
                         horariosDisponiveis.Add(horarioInicio);
                     }

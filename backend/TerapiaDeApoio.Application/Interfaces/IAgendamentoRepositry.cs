@@ -4,24 +4,26 @@ namespace TerapiaDeApoio.Application.Interfaces;
 
 public interface IAgendamentoRepository
 {
-    Task<bool> ExisteConflitoAsync(
+    Task<bool> PossuiCapacidadeAsync(
         int profissionalId,
         DateTime inicio,
         DateTime fim,
+        int capacidadeMaxima,
+        CancellationToken cancellationToken);
+
+    Task<bool> AdicionarSeHouverCapacidadeAsync(
+        Agendamento agendamento,
+        int capacidadeMaxima,
         CancellationToken cancellationToken);
 
     Task<Agendamento?> ObterPorIdAsync(
         int id,
         CancellationToken cancellationToken);
 
-    Task AdicionarAsync(
-        Agendamento agendamento,
+    Task<IReadOnlyList<Agendamento>> ListarPorTelefoneAsync(
+        string telefoneNormalizado,
         CancellationToken cancellationToken);
 
     Task SalvarAlteracoesAsync(
         CancellationToken cancellationToken);
-
-    Task<IReadOnlyList<Agendamento>> ListarPorTelefoneAsync(
-string telefoneNormalizado,
-CancellationToken cancellationToken);
 }

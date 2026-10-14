@@ -7,7 +7,7 @@ dotnet run --project backend/TerapiaDeApoio.Api
 git:
 
 git add . 
-git commit m ""
+git commit -m ""
 git push
 
 pagina na web:

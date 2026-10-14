@@ -297,6 +297,51 @@
           ></div>
         </div>
       </section>
+      <section class="section container" id="meus-agendamentos">
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow">Acompanhe suas sessões</span>
+            <h2>Meus agendamentos</h2>
+          </div>
+
+          <p>
+            Informe o telefone utilizado no cadastro para consultar seus
+            atendimentos e cancelar uma reserva.
+          </p>
+        </div>
+
+        <form id="form-consultar-agendamentos" class="lookup-form">
+          <div class="field">
+            <label for="consulta-telefone">Telefone do paciente</label>
+
+            <input
+              id="consulta-telefone"
+              type="tel"
+              maxlength="30"
+              autocomplete="tel"
+              placeholder="(54) 99999-0000"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            id="botao-consultar-agendamentos"
+            class="button button-primary"
+          >
+            Consultar agendamentos
+          </button>
+        </form>
+
+        <p
+          id="meus-agendamentos-feedback"
+          class="feedback"
+          role="status"
+          aria-live="polite"
+        ></p>
+
+        <div id="meus-agendamentos-lista" class="appointments-list"></div>
+      </section>
     </main>
 
     <footer class="site-footer">

@@ -20,4 +20,8 @@ public interface IAgendamentoRepository
 
     Task SalvarAlteracoesAsync(
         CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<Agendamento>> ListarPorTelefoneAsync(
+string telefoneNormalizado,
+CancellationToken cancellationToken);
 }

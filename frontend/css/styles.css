@@ -707,3 +707,104 @@ select:focus-visible {
         flex-direction: column;
     }
 }
+
+/* Área Meus Agendamentos */
+
+.lookup-form {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) auto;
+    align-items: end;
+    gap: 18px;
+    max-width: 760px;
+    padding: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.lookup-form .field {
+    margin-bottom: 0;
+}
+
+.lookup-form .button {
+    margin-bottom: 0;
+}
+
+.appointments-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: 24px;
+}
+
+.appointment-card {
+    padding: 22px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 5px 20px rgb(29 64 46 / 3%);
+}
+
+.appointment-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.appointment-card h3 {
+    margin: 0;
+    font-size: 17px;
+}
+
+.appointment-status {
+    flex-shrink: 0;
+    padding: 5px 9px;
+    border-radius: 999px;
+    background: var(--primary-light);
+    color: var(--primary-dark);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.appointment-status--cancelado {
+    background: var(--error-background);
+    color: var(--error);
+}
+
+.appointment-status--concluido {
+    background: #edf0f4;
+    color: #475467;
+}
+
+.appointment-details {
+    display: grid;
+    gap: 6px;
+    margin: 16px 0;
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+.appointment-card .button {
+    width: 100%;
+}
+
+.button-danger {
+    border-color: #e7b8b5;
+    background: white;
+    color: var(--error);
+}
+
+.button-danger:hover {
+    background: var(--error-background);
+}
+
+@media (max-width: 650px) {
+    .lookup-form {
+        grid-template-columns: 1fr;
+    }
+
+    .appointments-list {
+        grid-template-columns: 1fr;
+    }
+}

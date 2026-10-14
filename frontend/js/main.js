@@ -18,6 +18,24 @@ const sistemaFeedback = document.getElementById("sistema-feedback");
 
 const iconesServicos = ["✳", "◎", "↗", "◇", "✦", "○"];
 
+const consultaAgendamentosForm = document.getElementById(
+    "form-consultar-agendamentos"
+);
+
+const consultaTelefoneInput = document.getElementById(
+    "consulta-telefone"
+);
+
+const meusAgendamentosLista = document.getElementById(
+    "meus-agendamentos-lista"
+);
+
+const meusAgendamentosFeedback = document.getElementById(
+    "meus-agendamentos-feedback"
+);
+
+
+
 // Requisições HTTP e tratamento básico de erros.
 
 async function apiRequest(endpoint, options = {}) {
@@ -346,6 +364,76 @@ async function carregarHorariosDisponiveis() {
     }
 }
 
+async function consultarMeusAgendamentos(telefone) {
+    limparFeedback(meusAgendamentosFeedback);
+    meusAgendamentosLista.replaceChildren();
+
+    try {
+        const agendamentos =
+            await buscarAgendamentosPorTelefone(telefone);
+
+        renderizarMeusAgendamentos(agendamentos, telefone);
+
+        if (agendamentos.length === 0) {
+            mostrarFeedback(
+                meusAgendamentosFeedback,
+                "Nenhum agendamento encontrado para esse telefone.",
+                "info"
+            );
+        } else {
+            mostrarFeedback(
+                meusAgendamentosFeedback,
+                `${agendamentos.length} agendamento(s) encontrado(s).`,
+                "success"
+            );
+        }
+    } catch (erro) {
+        mostrarFeedback(
+            meusAgendamentosFeedback,
+            erro.message,
+            "error"
+        );
+    }
+}
+async function cancelarAgendamento(id, telefone, botao) {
+    const confirmar = window.confirm(
+        `Deseja realmente cancelar o agendamento #${id}?`
+    );
+
+    if (!confirmar) {
+        return;
+    }
+
+    botao.disabled = true;
+    botao.textContent = "Cancelando...";
+
+    try {
+        await apiRequest(`/api/agendamentos/${id}/cancelar`, {
+            method: "POST",
+            body: JSON.stringify({ telefone })
+        });
+
+        const agendamentos =
+            await buscarAgendamentosPorTelefone(telefone);
+
+        renderizarMeusAgendamentos(agendamentos, telefone);
+
+        mostrarFeedback(
+            meusAgendamentosFeedback,
+            `Agendamento #${id} cancelado com sucesso.`,
+            "success"
+        );
+    } catch (erro) {
+        mostrarFeedback(
+            meusAgendamentosFeedback,
+            erro.message,
+            "error"
+        );
+
+        botao.disabled = false;
+        botao.textContent = "Cancelar agendamento";
+    }
+}
 
 // Cadastro de paciente.
 
@@ -506,6 +594,137 @@ dataInput.addEventListener(
     "change",
     carregarHorariosDisponiveis
 );
+async function buscarAgendamentosPorTelefone(telefone) {
+    const parametros = new URLSearchParams({ telefone });
+
+    return await apiRequest(
+        `/api/agendamentos/meus?${parametros.toString()}`
+    );
+}
+
+function renderizarMeusAgendamentos(agendamentos, telefone) {
+    meusAgendamentosLista.replaceChildren();
+
+    if (agendamentos.length === 0) {
+        const mensagem = document.createElement("p");
+        mensagem.className = "empty-message";
+        mensagem.textContent =
+            "Nenhum agendamento foi encontrado para esse telefone.";
+
+        meusAgendamentosLista.appendChild(mensagem);
+        return;
+    }
+
+    agendamentos.forEach((agendamento) => {
+        const card = document.createElement("article");
+        card.className = "appointment-card";
+
+        const cabecalho = document.createElement("div");
+        cabecalho.className = "appointment-card-header";
+
+        const titulo = document.createElement("h3");
+        titulo.textContent = agendamento.servico;
+
+        const status = document.createElement("span");
+        status.className = "appointment-status";
+
+        if (agendamento.status === "Cancelado") {
+            status.classList.add("appointment-status--cancelado");
+        } else if (agendamento.status === "Concluido") {
+            status.classList.add("appointment-status--concluido");
+        }
+
+        status.textContent = agendamento.status;
+
+        cabecalho.append(titulo, status);
+
+        const detalhes = document.createElement("div");
+        detalhes.className = "appointment-details";
+
+        const profissional = document.createElement("p");
+        profissional.textContent =
+            `Profissional: ${agendamento.profissional}`;
+
+        const inicio = document.createElement("p");
+        inicio.textContent =
+            `Início: ${new Date(agendamento.dataHoraInicio)
+                .toLocaleString("pt-BR", {
+                    dateStyle: "short",
+                    timeStyle: "short"
+                })}`;
+
+        const fim = document.createElement("p");
+        fim.textContent =
+            `Término: ${new Date(agendamento.dataHoraFim)
+                .toLocaleTimeString("pt-BR", {
+                    hour: "2-digit",
+                    minute: "2-digit"
+                })}`;
+
+        const identificador = document.createElement("p");
+        identificador.textContent = `Agendamento #${agendamento.id}`;
+
+        detalhes.append(
+            profissional,
+            inicio,
+            fim,
+            identificador
+        );
+
+        card.append(cabecalho, detalhes);
+
+        if (agendamento.status === "Agendado") {
+            const botaoCancelar = document.createElement("button");
+            botaoCancelar.type = "button";
+            botaoCancelar.className = "button button-danger";
+            botaoCancelar.textContent = "Cancelar agendamento";
+
+            botaoCancelar.addEventListener("click", async () => {
+                await cancelarAgendamento(
+                    agendamento.id,
+                    telefone,
+                    botaoCancelar
+                );
+            });
+
+            card.appendChild(botaoCancelar);
+        }
+
+        meusAgendamentosLista.appendChild(card);
+    });
+}
+consultaAgendamentosForm.addEventListener(
+    "submit",
+    async (evento) => {
+        evento.preventDefault();
+
+        const telefone = consultaTelefoneInput.value.trim();
+
+        if (!telefone) {
+            mostrarFeedback(
+                meusAgendamentosFeedback,
+                "Informe o telefone utilizado no cadastro.",
+                "error"
+            );
+            return;
+        }
+
+        const botao = consultaAgendamentosForm.querySelector(
+            'button[type="submit"]'
+        );
+
+        botao.disabled = true;
+        botao.textContent = "Consultando...";
+
+        try {
+            await consultarMeusAgendamentos(telefone);
+        } finally {
+            botao.disabled = false;
+            botao.textContent = "Consultar agendamentos";
+        }
+    }
+);
+
 
 configurarDataMinima();
 carregarDadosIniciais();

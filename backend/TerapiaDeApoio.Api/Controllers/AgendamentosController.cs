@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
+
 using TerapiaDeApoio.Api.DTOs;
 using TerapiaDeApoio.Application.Services;
 using TerapiaDeApoio.Domain.Entities;
@@ -145,16 +147,27 @@ public class AgendamentosController : ControllerBase
 
     [HttpPost("{id:int}/cancelar")]
     public async Task<IActionResult> Cancelar(
-        int id,
-        CancellationToken cancellationToken)
+     int id,
+     [FromBody] CancelarAgendamentoRequest request,
+     CancellationToken cancellationToken)
     {
         try
         {
             await _agendamentoService.CancelarAsync(
                 id,
+                request.Telefone,
                 cancellationToken);
 
             return NoContent();
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Dados inválidos",
+                Detail = ex.Message,
+                Status = StatusCodes.Status400BadRequest
+            });
         }
         catch (KeyNotFoundException ex)
         {
@@ -187,5 +200,40 @@ public class AgendamentosController : ControllerBase
             agendamento.DataHoraInicio,
             agendamento.DataHoraFim,
             agendamento.Status.ToString());
+    }
+    [HttpGet("meus")]
+    public async Task<ActionResult<IReadOnlyList<MeuAgendamentoResponse>>>
+    ListarMeusAgendamentos(
+        [FromQuery] string? telefone,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var agendamentos =
+                await _agendamentoService.ListarPorTelefoneAsync(
+                    telefone ?? string.Empty,
+                    cancellationToken);
+
+            var resposta = agendamentos
+                .Select(a => new MeuAgendamentoResponse(
+                    a.Id,
+                    a.Servico.Nome,
+                    a.Profissional.Nome,
+                    a.DataHoraInicio,
+                    a.DataHoraFim,
+                    a.Status.ToString()))
+                .ToList();
+
+            return Ok(resposta);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Dados inválidos",
+                Detail = ex.Message,
+                Status = StatusCodes.Status400BadRequest
+            });
+        }
     }
 }

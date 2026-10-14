@@ -1,3 +1,4 @@
+using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using TerapiaDeApoio.Application.Interfaces;
 using TerapiaDeApoio.Domain.Entities;
@@ -56,5 +57,25 @@ public class AgendamentoRepository : IAgendamentoRepository
         CancellationToken cancellationToken)
     {
         await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<Agendamento>> ListarPorTelefoneAsync(
+    string telefoneNormalizado,
+    CancellationToken cancellationToken)
+    {
+        return await _context.Agendamentos
+            .AsNoTracking()
+            .Include(a => a.Servico)
+            .Include(a => a.Profissional)
+            .Where(a =>
+                a.Paciente.Telefone
+                    .Replace("(", "")
+                    .Replace(")", "")
+                    .Replace("-", "")
+                    .Replace(" ", "")
+                    .Replace("+", "")
+                    == telefoneNormalizado)
+            .OrderByDescending(a => a.DataHoraInicio)
+            .ToListAsync(cancellationToken);
     }
 }

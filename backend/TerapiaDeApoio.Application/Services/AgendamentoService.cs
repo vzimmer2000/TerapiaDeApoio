@@ -1,3 +1,5 @@
+using System.Linq;
+
 using TerapiaDeApoio.Application.Interfaces;
 using TerapiaDeApoio.Domain.Entities;
 
@@ -146,9 +148,18 @@ public class AgendamentoService
     }
 
     public async Task CancelarAsync(
-        int agendamentoId,
-        CancellationToken cancellationToken = default)
+      int agendamentoId,
+      string telefone,
+      CancellationToken cancellationToken = default)
     {
+        var telefoneNormalizado = NormalizarTelefone(telefone);
+
+        if (telefoneNormalizado.Length < 8)
+        {
+            throw new ArgumentException(
+                "Informe um telefone válido.");
+        }
+
         var agendamento = await _agendamentoRepository.ObterPorIdAsync(
             agendamentoId,
             cancellationToken);
@@ -156,7 +167,18 @@ public class AgendamentoService
         if (agendamento is null)
         {
             throw new KeyNotFoundException(
-                "Agendamento não encontrado.");
+                "Agendamento não encontrado para os dados informados.");
+        }
+
+        var paciente = await _pacienteRepository.ObterPorIdAsync(
+            agendamento.PacienteId,
+            cancellationToken);
+
+        if (paciente is null ||
+            NormalizarTelefone(paciente.Telefone) != telefoneNormalizado)
+        {
+            throw new KeyNotFoundException(
+                "Agendamento não encontrado para os dados informados.");
         }
 
         agendamento.Cancelar();
@@ -164,6 +186,7 @@ public class AgendamentoService
         await _agendamentoRepository.SalvarAlteracoesAsync(
             cancellationToken);
     }
+
     public Task<Agendamento?> ObterPorIdAsync(
     int id,
     CancellationToken cancellationToken)
@@ -308,5 +331,27 @@ public class AgendamentoService
             .Distinct()
             .OrderBy(h => h)
             .ToList();
+    }
+    public async Task<IReadOnlyList<Agendamento>> ListarPorTelefoneAsync(
+    string telefone,
+    CancellationToken cancellationToken = default)
+    {
+        var telefoneNormalizado = NormalizarTelefone(telefone);
+
+        if (telefoneNormalizado.Length < 8)
+        {
+            throw new ArgumentException(
+                "Informe um telefone válido para consultar os agendamentos.");
+        }
+
+        return await _agendamentoRepository.ListarPorTelefoneAsync(
+            telefoneNormalizado,
+            cancellationToken);
+    }
+
+    private static string NormalizarTelefone(string telefone)
+    {
+        return new string(
+            telefone.Where(char.IsDigit).ToArray());
     }
 }

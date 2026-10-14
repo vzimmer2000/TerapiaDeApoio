@@ -361,6 +361,91 @@
     min-width: 540px;
 }
 
+/* Serviços e disponibilidades */
+
+.admin-management-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    align-items: start;
+}
+
+.management-card {
+    min-width: 0;
+    padding: 22px;
+    background: #fafcf9;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+}
+
+.management-card h3 {
+    margin: 0;
+    font-size: 17px;
+}
+
+.management-card>p {
+    margin: 6px 0 20px;
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+.management-card .field {
+    margin-bottom: 15px;
+}
+
+.management-time-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.management-list-heading {
+    margin-top: 24px;
+    padding-top: 17px;
+    border-top: 1px solid var(--border);
+    font-size: 13px;
+}
+
+.management-list {
+    display: grid;
+    gap: 9px;
+    margin: 12px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.management-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 11px 12px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    color: var(--text);
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
+.management-list small {
+    color: var(--text-muted);
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.management-list .management-list-empty {
+    color: var(--text-muted);
+    background: transparent;
+    border-style: dashed;
+}
+
+@media (max-width: 850px) {
+    .admin-management-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 @media (max-width: 950px) {
     .admin-management-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));

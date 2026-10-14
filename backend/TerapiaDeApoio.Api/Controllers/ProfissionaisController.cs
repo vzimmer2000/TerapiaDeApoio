@@ -270,5 +270,38 @@ public class ProfissionaisController : ControllerBase
             disponibilidade.HoraInicio,
             disponibilidade.HoraFim);
     }
+    [HttpGet("{id:int}/servicos")]
+    public async Task<ActionResult<IReadOnlyList<ServicoResponse>>>
+    ListarServicos(
+        int id,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var servicos = await _profissionalService.ListarServicosAsync(
+                id,
+                cancellationToken);
+
+            var resposta = servicos
+                .Select(s => new ServicoResponse(
+                    s.Id,
+                    s.Nome,
+                    s.Descricao,
+                    s.DuracaoMinutos,
+                    s.Ativo))
+                .ToList();
+
+            return Ok(resposta);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new ProblemDetails
+            {
+                Title = "Profissional não encontrado",
+                Detail = ex.Message,
+                Status = StatusCodes.Status404NotFound
+            });
+        }
+    }
 
 }

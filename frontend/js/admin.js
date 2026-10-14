@@ -551,6 +551,9 @@ async function executarCadastro({
         if (atualizarProfissionais) {
             await carregarProfissionais();
         }
+
+        await carregarOpcoesGerenciamento();
+
     } catch (erro) {
         mostrarFeedbackCadastro(
             feedbackId,
@@ -616,19 +619,308 @@ document.getElementById("admin-form-servico")
 
 document.getElementById("admin-atualizar-cadastros")
     .addEventListener("click", async () => {
-        await carregarResumoCadastros();
-        await carregarProfissionais();
+        try {
+            await Promise.all([
+                carregarResumoCadastros(),
+                carregarProfissionais(),
+                carregarOpcoesGerenciamento()
+            ]);
+
+            await carregarAgenda();
+
+            mostrarMensagem(
+                "Cadastros e listas atualizados.",
+                "success"
+            );
+        } catch (erro) {
+            mostrarMensagem(
+                `Não foi possível atualizar os dados: ${erro.message}`,
+                "error"
+            );
+        }
     });
+
+
+document.getElementById("admin-vinculo-profissional")
+    .addEventListener("change", carregarServicosAssociados);
+
+document.getElementById("admin-form-associar-servico")
+    .addEventListener("submit", async evento => {
+        evento.preventDefault();
+
+        const profissionalId = document.getElementById(
+            "admin-vinculo-profissional"
+        ).value;
+
+        const servicoId = document.getElementById(
+            "admin-vinculo-servico"
+        ).value;
+
+        const botao = evento.currentTarget.querySelector(
+            'button[type="submit"]'
+        );
+
+        if (!profissionalId || !servicoId) {
+            mostrarFeedbackCadastro(
+                "admin-vinculos-feedback",
+                "Selecione um profissional e um serviço.",
+                "error"
+            );
+            return;
+        }
+
+        botao.disabled = true;
+
+        try {
+            await requisicaoApi(
+                `/api/profissionais/${encodeURIComponent(profissionalId)}/servicos`,
+                {
+                    method: "POST",
+                    body: JSON.stringify({
+                        servicoId: Number(servicoId)
+                    })
+                }
+            );
+
+            mostrarFeedbackCadastro(
+                "admin-vinculos-feedback",
+                "Serviço associado ao profissional com sucesso.",
+                "success"
+            );
+
+            await carregarServicosAssociados();
+        } catch (erro) {
+            mostrarFeedbackCadastro(
+                "admin-vinculos-feedback",
+                erro.message,
+                "error"
+            );
+        } finally {
+            botao.disabled = false;
+        }
+    });
+
+document.getElementById("admin-disponibilidade-profissional")
+    .addEventListener("change", carregarDisponibilidadesAdmin);
+
+document.getElementById("admin-form-disponibilidade")
+    .addEventListener("submit", async evento => {
+        evento.preventDefault();
+
+        const profissionalId = document.getElementById(
+            "admin-disponibilidade-profissional"
+        ).value;
+
+        const diaSemana = Number(
+            document.getElementById("admin-disponibilidade-dia").value
+        );
+
+        const horaInicio = document.getElementById(
+            "admin-disponibilidade-inicio"
+        ).value;
+
+        const horaFim = document.getElementById(
+            "admin-disponibilidade-fim"
+        ).value;
+
+        const botao = evento.currentTarget.querySelector(
+            'button[type="submit"]'
+        );
+
+        if (!profissionalId || !horaInicio || !horaFim) {
+            mostrarFeedbackCadastro(
+                "admin-disponibilidade-feedback",
+                "Preencha o profissional, o horário inicial e o horário final.",
+                "error"
+            );
+            return;
+        }
+
+        if (horaInicio >= horaFim) {
+            mostrarFeedbackCadastro(
+                "admin-disponibilidade-feedback",
+                "O horário inicial deve ser anterior ao final.",
+                "error"
+            );
+            return;
+        }
+
+        const body = {
+            diaSemana,
+            horaInicio: `${horaInicio}:00`,
+            horaFim: `${horaFim}:00`
+        };
+
+        botao.disabled = true;
+
+        try {
+            await requisicaoApi(
+                `/api/profissionais/${encodeURIComponent(profissionalId)}/disponibilidades`,
+                {
+                    method: "POST",
+                    body: JSON.stringify(body)
+                }
+            );
+
+            mostrarFeedbackCadastro(
+                "admin-disponibilidade-feedback",
+                "Disponibilidade cadastrada com sucesso.",
+                "success"
+            );
+
+            document.getElementById(
+                "admin-disponibilidade-inicio"
+            ).value = "";
+
+            document.getElementById(
+                "admin-disponibilidade-fim"
+            ).value = "";
+
+            await carregarDisponibilidadesAdmin();
+        } catch (erro) {
+            mostrarFeedbackCadastro(
+                "admin-disponibilidade-feedback",
+                erro.message,
+                "error"
+            );
+        } finally {
+            botao.disabled = false;
+        }
+    });
+
+function preencherSelectGerenciamento(
+    select,
+    itens,
+    textoInicial,
+    obterTexto
+) {
+    const valorAnterior = select.value;
+
+    select.replaceChildren();
+
+    const opcaoInicial = document.createElement("option");
+    opcaoInicial.value = "";
+    opcaoInicial.textContent = textoInicial;
+    select.appendChild(opcaoInicial);
+
+    for (const item of itens) {
+        const opcao = document.createElement("option");
+        opcao.value = String(item.id);
+        opcao.textContent = obterTexto(item);
+        select.appendChild(opcao);
+    }
+
+    if (itens.some(item => String(item.id) === valorAnterior)) {
+        select.value = valorAnterior;
+    }
+}
+
+async function carregarOpcoesGerenciamento() {
+    const [profissionais, servicos] = await Promise.all([
+        requisicaoApi("/api/profissionais"),
+        requisicaoApi("/api/servicos")
+    ]);
+
+    const profissionaisAtivos = profissionais.filter(
+        profissional => profissional.ativo
+    );
+
+    const profissionaisSelects = [
+        document.getElementById("admin-vinculo-profissional"),
+        document.getElementById("admin-disponibilidade-profissional")
+    ];
+
+    profissionaisSelects.forEach(select => {
+        preencherSelectGerenciamento(
+            select,
+            profissionaisAtivos,
+            profissionaisAtivos.length
+                ? "Selecione um profissional"
+                : "Nenhum profissional ativo",
+            profissional =>
+                `${profissional.nome} — ${profissional.especialidade}`
+        );
+    });
+
+    const servicoSelect = document.getElementById(
+        "admin-vinculo-servico"
+    );
+
+    preencherSelectGerenciamento(
+        servicoSelect,
+        servicos.filter(servico => servico.ativo),
+        "Selecione um serviço",
+        servico => `${servico.nome} (${servico.duracaoMinutos} min)`
+    );
+
+    await Promise.all([
+        carregarServicosAssociados(),
+        carregarDisponibilidadesAdmin()
+    ]);
+}
+async function carregarServicosAssociados() {
+    const profissionalId = document.getElementById(
+        "admin-vinculo-profissional"
+    ).value;
+
+    const lista = document.getElementById(
+        "admin-servicos-associados"
+    );
+
+    lista.replaceChildren();
+
+    if (!profissionalId) {
+        const item = document.createElement("li");
+        item.className = "management-list-empty";
+        item.textContent = "Selecione um profissional.";
+        lista.appendChild(item);
+        return;
+    }
+
+    try {
+        const servicos = await requisicaoApi(
+            `/api/profissionais/${encodeURIComponent(profissionalId)}/servicos`
+        );
+
+        if (servicos.length === 0) {
+            const item = document.createElement("li");
+            item.className = "management-list-empty";
+            item.textContent = "Nenhum serviço associado.";
+            lista.appendChild(item);
+            return;
+        }
+
+        servicos.forEach(servico => {
+            const item = document.createElement("li");
+            const nome = document.createElement("span");
+            const duracao = document.createElement("small");
+
+            nome.textContent = servico.nome;
+            duracao.textContent = `${servico.duracaoMinutos} min`;
+
+            item.append(nome, duracao);
+            lista.appendChild(item);
+        });
+    } catch (erro) {
+        const item = document.createElement("li");
+        item.className = "management-list-empty";
+        item.textContent = `Erro ao consultar serviços: ${erro.message}`;
+        lista.appendChild(item);
+    }
+}
 
 
 async function inicializarPainel() {
     agendaDataInput.value = obterDataLocal();
 
     try {
-        await carregarProfissionais();
+        await Promise.all([
+            carregarProfissionais(),
+            carregarOpcoesGerenciamento()
+        ]);
     } catch (erro) {
         mostrarMensagem(
-            `Não foi possível carregar os profissionais: ${erro.message}`,
+            `Não foi possível carregar os dados: ${erro.message}`,
             "error"
         );
     }
@@ -639,4 +931,60 @@ async function inicializarPainel() {
     ]);
 }
 
+inicializarPainel();
+
+async function carregarDisponibilidadesAdmin() {
+    const profissionalId = document.getElementById(
+        "admin-disponibilidade-profissional"
+    ).value;
+
+    const lista = document.getElementById(
+        "admin-disponibilidades-lista"
+    );
+
+    lista.replaceChildren();
+
+    if (!profissionalId) {
+        const item = document.createElement("li");
+        item.className = "management-list-empty";
+        item.textContent = "Selecione um profissional.";
+        lista.appendChild(item);
+        return;
+    }
+
+    try {
+        const disponibilidades = await requisicaoApi(
+            `/api/profissionais/${encodeURIComponent(profissionalId)}/disponibilidades`
+        );
+
+        if (disponibilidades.length === 0) {
+            const item = document.createElement("li");
+            item.className = "management-list-empty";
+            item.textContent = "Nenhuma disponibilidade cadastrada.";
+            lista.appendChild(item);
+            return;
+        }
+
+        disponibilidades.forEach(disponibilidade => {
+            const item = document.createElement("li");
+            const dia = document.createElement("span");
+            const horario = document.createElement("small");
+
+            dia.textContent = disponibilidade.diaSemana;
+            horario.textContent =
+                `${disponibilidade.horaInicio.slice(0, 5)}–` +
+                `${disponibilidade.horaFim.slice(0, 5)}`;
+
+            item.append(dia, horario);
+            lista.appendChild(item);
+        });
+    } catch (erro) {
+        const item = document.createElement("li");
+        item.className = "management-list-empty";
+        item.textContent =
+            `Erro ao consultar disponibilidades: ${erro.message}`;
+
+        lista.appendChild(item);
+    }
+}
 inicializarPainel();

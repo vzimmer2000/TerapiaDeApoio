@@ -141,4 +141,17 @@ public class ProfissionalRepository : IProfissionalRepository
             .OrderBy(p => p.Nome)
             .ToListAsync(cancellationToken);
     }
+    public async Task<IReadOnlyList<Servico>> ListarServicosAsync(
+    int profissionalId,
+    CancellationToken cancellationToken)
+    {
+        return await _context.ProfissionalServicos
+            .AsNoTracking()
+            .Where(ps =>
+                ps.ProfissionalId == profissionalId &&
+                ps.Servico.Ativo)
+            .Select(ps => ps.Servico)
+            .OrderBy(s => s.Nome)
+            .ToListAsync(cancellationToken);
+    }
 }

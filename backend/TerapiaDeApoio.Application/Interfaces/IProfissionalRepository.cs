@@ -53,4 +53,7 @@ ListarDisponibilidadesAsync(
     Task<IReadOnlyList<Profissional>> ListarPorServicoAsync(
     int servicoId,
     CancellationToken cancellationToken);
+    Task<IReadOnlyList<Servico>> ListarServicosAsync(
+    int profissionalId,
+    CancellationToken cancellationToken);
 }

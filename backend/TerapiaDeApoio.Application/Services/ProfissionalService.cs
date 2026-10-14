@@ -258,4 +258,23 @@ public class ProfissionalService
             servicoId,
             cancellationToken);
     }
+    public async Task<IReadOnlyList<Servico>> ListarServicosAsync(
+    int profissionalId,
+    CancellationToken cancellationToken)
+    {
+        var profissional =
+            await _profissionalRepository.ObterPorIdAsync(
+                profissionalId,
+                cancellationToken);
+
+        if (profissional is null)
+        {
+            throw new KeyNotFoundException(
+                "Profissional não encontrado.");
+        }
+
+        return await _profissionalRepository.ListarServicosAsync(
+            profissionalId,
+            cancellationToken);
+    }
 }

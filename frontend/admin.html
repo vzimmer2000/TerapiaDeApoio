@@ -433,6 +433,132 @@
         ></p>
       </section>
 
+      <section class="admin-panel" id="gerenciar-servicos-profissionais">
+        <div class="admin-panel-heading">
+          <div>
+            <h2>Serviços e disponibilidades</h2>
+            <p>
+              Defina quais modalidades cada profissional oferece e em quais
+              horários atende.
+            </p>
+          </div>
+        </div>
+
+        <div class="admin-management-grid">
+          <!-- Associação entre profissional e serviço -->
+          <article class="management-card">
+            <h3>Serviços do profissional</h3>
+            <p>Associe uma modalidade a um profissional ativo.</p>
+
+            <form id="admin-form-associar-servico">
+              <div class="field">
+                <label for="admin-vinculo-profissional"> Profissional </label>
+
+                <select id="admin-vinculo-profissional" required>
+                  <option value="">Carregando profissionais...</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label for="admin-vinculo-servico">Serviço</label>
+
+                <select id="admin-vinculo-servico" required>
+                  <option value="">Carregando serviços...</option>
+                </select>
+              </div>
+
+              <button type="submit" class="button button-primary button-full">
+                Associar serviço
+              </button>
+
+              <p
+                id="admin-vinculos-feedback"
+                class="feedback"
+                role="status"
+                aria-live="polite"
+              ></p>
+            </form>
+
+            <div class="management-list-heading">
+              <strong>Serviços associados</strong>
+            </div>
+
+            <ul id="admin-servicos-associados" class="management-list">
+              <li>Selecione um profissional.</li>
+            </ul>
+          </article>
+
+          <!-- Disponibilidade semanal -->
+          <article class="management-card">
+            <h3>Disponibilidade semanal</h3>
+            <p>Cadastre os intervalos de atendimento.</p>
+
+            <form id="admin-form-disponibilidade">
+              <div class="field">
+                <label for="admin-disponibilidade-profissional">
+                  Profissional
+                </label>
+
+                <select id="admin-disponibilidade-profissional" required>
+                  <option value="">Carregando profissionais...</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label for="admin-disponibilidade-dia"> Dia da semana </label>
+
+                <select id="admin-disponibilidade-dia" required>
+                  <option value="0">Domingo</option>
+                  <option value="1" selected>Segunda-feira</option>
+                  <option value="2">Terça-feira</option>
+                  <option value="3">Quarta-feira</option>
+                  <option value="4">Quinta-feira</option>
+                  <option value="5">Sexta-feira</option>
+                  <option value="6">Sábado</option>
+                </select>
+              </div>
+
+              <div class="management-time-grid">
+                <div class="field">
+                  <label for="admin-disponibilidade-inicio"> Início </label>
+
+                  <input
+                    id="admin-disponibilidade-inicio"
+                    type="time"
+                    required
+                  />
+                </div>
+
+                <div class="field">
+                  <label for="admin-disponibilidade-fim"> Término </label>
+
+                  <input id="admin-disponibilidade-fim" type="time" required />
+                </div>
+              </div>
+
+              <button type="submit" class="button button-primary button-full">
+                Cadastrar disponibilidade
+              </button>
+
+              <p
+                id="admin-disponibilidade-feedback"
+                class="feedback"
+                role="status"
+                aria-live="polite"
+              ></p>
+            </form>
+
+            <div class="management-list-heading">
+              <strong>Horários cadastrados</strong>
+            </div>
+
+            <ul id="admin-disponibilidades-lista" class="management-list">
+              <li>Selecione um profissional.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
       <p class="admin-notice">
         Ambiente acadêmico local. Este painel ainda não possui autenticação ou
         controle de acesso administrativo.

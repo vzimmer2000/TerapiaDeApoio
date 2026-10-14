@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Painel da Clínica | Terapia de Apoio</title>
+
+    <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="stylesheet" href="/css/admin.css" />
+
+    <script src="/js/admin.js" defer></script>
+  </head>
+
+  <body class="admin-page">
+    <header class="site-header">
+      <div class="container admin-navbar">
+        <a href="/admin.html" class="brand">
+          <span class="brand-mark">TA</span>
+
+          <span class="brand-copy">
+            <strong>Terapia de Apoio</strong>
+            <small>Painel administrativo</small>
+          </span>
+        </a>
+
+        <a href="/" class="button button-outline"> Portal do paciente </a>
+      </div>
+    </header>
+
+    <main class="container admin-main">
+      <section class="admin-intro">
+        <span class="eyebrow">Gestão da clínica</span>
+
+        <h1>Agenda de atendimentos</h1>
+
+        <p>
+          Consulte os atendimentos, filtre por profissional e acompanhe a
+          ocupação da clínica.
+        </p>
+      </section>
+
+      <section class="admin-panel" aria-labelledby="filtros-titulo">
+        <div class="admin-panel-heading">
+          <div>
+            <h2 id="filtros-titulo">Consultar agenda</h2>
+            <p>Selecione uma data e, opcionalmente, um profissional.</p>
+          </div>
+        </div>
+
+        <form id="form-agenda" class="agenda-filtros">
+          <div class="field">
+            <label for="agenda-data">Data</label>
+
+            <input id="agenda-data" type="date" required />
+          </div>
+
+          <div class="field">
+            <label for="agenda-profissional">Profissional</label>
+
+            <select id="agenda-profissional">
+              <option value="">Todos os profissionais</option>
+            </select>
+          </div>
+
+          <button type="submit" class="button button-primary">
+            Consultar agenda
+          </button>
+        </form>
+
+        <div class="agenda-navegacao">
+          <button
+            type="button"
+            id="agenda-anterior"
+            class="button button-outline"
+          >
+            ← Dia anterior
+          </button>
+
+          <button type="button" id="agenda-hoje" class="button button-outline">
+            Hoje
+          </button>
+
+          <button
+            type="button"
+            id="agenda-proximo"
+            class="button button-outline"
+          >
+            Próximo dia →
+          </button>
+        </div>
+
+        <p
+          id="agenda-feedback"
+          class="admin-feedback"
+          role="status"
+          aria-live="polite"
+        ></p>
+      </section>
+
+      <section class="admin-stats" aria-label="Resumo da agenda">
+        <article class="stat-card">
+          <span>Total de atendimentos</span>
+          <strong id="total-atendimentos">—</strong>
+          <small>Inclui todos os status</small>
+        </article>
+
+        <article class="stat-card stat-card-agendados">
+          <span>Agendados</span>
+          <strong id="total-agendados">—</strong>
+          <small>Reservas ativas</small>
+        </article>
+
+        <article class="stat-card stat-card-concluidos">
+          <span>Concluídos</span>
+          <strong id="total-concluidos">—</strong>
+          <small>Atendimentos finalizados</small>
+        </article>
+
+        <article class="stat-card stat-card-cancelados">
+          <span>Cancelados</span>
+          <strong id="total-cancelados">—</strong>
+          <small>Histórico preservado</small>
+        </article>
+      </section>
+
+      <section class="admin-panel" aria-labelledby="agenda-lista-titulo">
+        <div class="admin-panel-heading">
+          <div>
+            <h2 id="agenda-lista-titulo">Atendimentos do dia</h2>
+            <p id="agenda-data-titulo">Selecione uma data para consultar.</p>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="agenda-table">
+            <thead>
+              <tr>
+                <th>Horário</th>
+                <th>Paciente</th>
+                <th>Telefone</th>
+                <th>Serviço</th>
+                <th>Profissional</th>
+                <th>Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+
+            <tbody id="agenda-tbody">
+              <tr>
+                <td colspan="7" class="table-message">
+                  Aguardando consulta da agenda...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="admin-panel" aria-labelledby="cadastros-titulo">
+        <div class="admin-panel-heading">
+          <div>
+            <h2 id="cadastros-titulo">Visão geral dos cadastros</h2>
+            <p>Resumo dos registros existentes no sistema.</p>
+          </div>
+        </div>
+
+        <div class="cadastros-resumo">
+          <article class="cadastro-card">
+            <span class="cadastro-icon" aria-hidden="true">♙</span>
+            <div>
+              <strong id="resumo-pacientes">—</strong>
+              <span>Pacientes cadastrados</span>
+            </div>
+          </article>
+
+          <article class="cadastro-card">
+            <span class="cadastro-icon" aria-hidden="true">✚</span>
+            <div>
+              <strong id="resumo-profissionais">—</strong>
+              <span>Profissionais cadastrados</span>
+            </div>
+          </article>
+
+          <article class="cadastro-card">
+            <span class="cadastro-icon" aria-hidden="true">◇</span>
+            <div>
+              <strong id="resumo-servicos">—</strong>
+              <span>Serviços ativos</span>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- Formulários de cadastro -->
+      <section class="admin-panel" id="gerenciar-cadastros">
+        <div class="admin-panel-heading">
+          <div>
+            <h2>Gerenciar cadastros</h2>
+            <p>Cadastre pacientes, profissionais e serviços da clínica.</p>
+          </div>
+        </div>
+
+        <div class="admin-management-grid">
+          <!-- Cadastro de paciente -->
+          <article class="management-card">
+            <h3>Novo paciente</h3>
+            <p>Registre os dados básicos do paciente.</p>
+
+            <form id="admin-form-paciente">
+              <div class="field">
+                <label for="admin-paciente-nome">Nome completo</label>
+                <input
+                  id="admin-paciente-nome"
+                  type="text"
+                  maxlength="120"
+                  required
+                />
+              </div>
+
+              <div class="field">
+                <label for="admin-paciente-telefone">Telefone</label>
+                <input
+                  id="admin-paciente-telefone"
+                  type="tel"
+                  maxlength="30"
+                  required
+                />
+              </div>
+
+              <div class="field">
+                <label for="admin-paciente-email">E-mail (opcional)</label>
+                <input id="admin-paciente-email" type="email" maxlength="254" />
+              </div>
+
+              <button type="submit" class="button button-primary button-full">
+                Cadastrar paciente
+              </button>
+
+              <p
+                id="admin-paciente-feedback"
+                class="feedback"
+                role="status"
+                aria-live="polite"
+              ></p>
+            </form>
+          </article>
+
+          <!-- Cadastro de profissional -->
+          <article class="management-card">
+            <h3>Novo profissional</h3>
+            <p>Registre os profissionais da clínica.</p>
+
+            <form id="admin-form-profissional">
+              <div class="field">
+                <label for="admin-profissional-nome">Nome completo</label>
+                <input
+                  id="admin-profissional-nome"
+                  type="text"
+                  maxlength="120"
+                  required
+                />
+              </div>
+
+              <div class="field">
+                <label for="admin-profissional-especialidade">
+                  Especialidade
+                </label>
+                <input
+                  id="admin-profissional-especialidade"
+                  type="text"
+                  maxlength="100"
+                  required
+                />
+              </div>
+
+              <button type="submit" class="button button-primary button-full">
+                Cadastrar profissional
+              </button>
+
+              <p
+                id="admin-profissional-feedback"
+                class="feedback"
+                role="status"
+                aria-live="polite"
+              ></p>
+            </form>
+          </article>
+
+          <!-- Cadastro de serviço -->
+          <article class="management-card">
+            <h3>Novo serviço</h3>
+            <p>Cadastre uma modalidade de atendimento.</p>
+
+            <form id="admin-form-servico">
+              <div class="field">
+                <label for="admin-servico-nome">Nome do serviço</label>
+                <input
+                  id="admin-servico-nome"
+                  type="text"
+                  maxlength="100"
+                  required
+                />
+              </div>
+
+              <div class="field">
+                <label for="admin-servico-descricao">Descrição</label>
+                <input
+                  id="admin-servico-descricao"
+                  type="text"
+                  maxlength="500"
+                />
+              </div>
+
+              <div class="field">
+                <label for="admin-servico-duracao"> Duração (minutos) </label>
+                <input
+                  id="admin-servico-duracao"
+                  type="number"
+                  min="1"
+                  max="480"
+                  value="50"
+                  required
+                />
+              </div>
+
+              <button type="submit" class="button button-primary button-full">
+                Cadastrar serviço
+              </button>
+
+              <p
+                id="admin-servico-feedback"
+                class="feedback"
+                role="status"
+                aria-live="polite"
+              ></p>
+            </form>
+          </article>
+        </div>
+      </section>
+
+      <!-- Listagem dos registros -->
+      <section class="admin-panel" id="lista-cadastros">
+        <div class="admin-panel-heading">
+          <div>
+            <h2>Registros da clínica</h2>
+            <p>Consulte os dados que já estão salvos no banco.</p>
+          </div>
+
+          <button
+            id="admin-atualizar-cadastros"
+            type="button"
+            class="button button-outline"
+          >
+            Atualizar listas
+          </button>
+        </div>
+
+        <div class="admin-records-section">
+          <h3>Pacientes</h3>
+
+          <div class="table-responsive">
+            <table class="agenda-table">
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>Telefone</th>
+                  <th>E-mail</th>
+                </tr>
+              </thead>
+              <tbody id="admin-pacientes-tbody">
+                <tr>
+                  <td colspan="3" class="table-message">
+                    Carregando pacientes...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="admin-records-section">
+          <h3>Profissionais</h3>
+
+          <div class="table-responsive">
+            <table class="agenda-table">
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>Especialidade</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="admin-profissionais-tbody">
+                <tr>
+                  <td colspan="3" class="table-message">
+                    Carregando profissionais...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="admin-records-section">
+          <h3>Serviços ativos</h3>
+
+          <div class="table-responsive">
+            <table class="agenda-table">
+              <thead>
+                <tr>
+                  <th>Serviço</th>
+                  <th>Descrição</th>
+                  <th>Duração</th>
+                </tr>
+              </thead>
+              <tbody id="admin-servicos-tbody">
+                <tr>
+                  <td colspan="3" class="table-message">
+                    Carregando serviços...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <p
+          id="admin-listas-feedback"
+          class="admin-feedback"
+          role="status"
+          aria-live="polite"
+        ></p>
+      </section>
+
+      <p class="admin-notice">
+        Ambiente acadêmico local. Este painel ainda não possui autenticação ou
+        controle de acesso administrativo.
+      </p>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-content">
+        <span>Terapia de Apoio</span>
+        <span>Painel administrativo · Projeto acadêmico</span>
+      </div>
+    </footer>
+  </body>
+</html>

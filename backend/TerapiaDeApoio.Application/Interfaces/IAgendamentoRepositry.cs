@@ -26,4 +26,9 @@ public interface IAgendamentoRepository
 
     Task SalvarAlteracoesAsync(
         CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<Agendamento>> ListarAgendaAsync(
+DateOnly data,
+int? profissionalId,
+CancellationToken cancellationToken);
 }

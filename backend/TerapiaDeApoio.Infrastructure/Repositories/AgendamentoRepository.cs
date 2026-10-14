@@ -217,4 +217,37 @@ public class AgendamentoRepository : IAgendamentoRepository
 
         public DateTime Fim { get; set; }
     }
+    public async Task<IReadOnlyList<Agendamento>> ListarAgendaAsync(
+    DateOnly data,
+    int? profissionalId,
+    CancellationToken cancellationToken)
+    {
+        var inicioDia = data.ToDateTime(
+            TimeOnly.MinValue,
+            DateTimeKind.Unspecified);
+
+        var inicioDiaSeguinte = data.AddDays(1).ToDateTime(
+            TimeOnly.MinValue,
+            DateTimeKind.Unspecified);
+
+        var query = _context.Agendamentos
+            .AsNoTracking()
+            .Include(a => a.Paciente)
+            .Include(a => a.Profissional)
+            .Include(a => a.Servico)
+            .Where(a =>
+                a.DataHoraInicio >= inicioDia &&
+                a.DataHoraInicio < inicioDiaSeguinte);
+
+        if (profissionalId.HasValue)
+        {
+            query = query.Where(
+                a => a.ProfissionalId == profissionalId.Value);
+        }
+
+        return await query
+            .OrderBy(a => a.DataHoraInicio)
+            .ThenBy(a => a.Profissional.Nome)
+            .ToListAsync(cancellationToken);
+    }
 }

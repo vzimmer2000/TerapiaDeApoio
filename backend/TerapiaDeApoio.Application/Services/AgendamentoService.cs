@@ -349,4 +349,33 @@ public class AgendamentoService
         return new string(
             telefone.Where(char.IsDigit).ToArray());
     }
+    public async Task<IReadOnlyList<Agendamento>> ListarAgendaAsync(
+    DateOnly data,
+    int? profissionalId,
+    CancellationToken cancellationToken = default)
+    {
+        if (profissionalId.HasValue && profissionalId.Value <= 0)
+        {
+            throw new ArgumentException(
+                "O ID do profissional deve ser válido.");
+        }
+
+        if (profissionalId.HasValue)
+        {
+            var profissional = await _profissionalRepository.ObterPorIdAsync(
+                profissionalId.Value,
+                cancellationToken);
+
+            if (profissional is null)
+            {
+                throw new KeyNotFoundException(
+                    "Profissional não encontrado.");
+            }
+        }
+
+        return await _agendamentoRepository.ListarAgendaAsync(
+            data,
+            profissionalId,
+            cancellationToken);
+    }
 }

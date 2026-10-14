@@ -126,6 +126,65 @@ public class AgendamentosController : ControllerBase
             });
         }
     }
+    [HttpGet("agenda")]
+    public async Task<
+    ActionResult<IReadOnlyList<AgendaClinicaResponse>>>
+    ConsultarAgenda(
+        [FromQuery] DateOnly? data,
+        [FromQuery] int? profissionalId,
+        CancellationToken cancellationToken)
+    {
+        if (data is null)
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Data obrigatória",
+                Detail = "Informe a data para consultar a agenda.",
+                Status = StatusCodes.Status400BadRequest
+            });
+        }
+
+        try
+        {
+            var agendamentos =
+                await _agendamentoService.ListarAgendaAsync(
+                    data.Value,
+                    profissionalId,
+                    cancellationToken);
+
+            var resposta = agendamentos
+                .Select(a => new AgendaClinicaResponse(
+                    a.Id,
+                    a.Paciente.Nome,
+                    a.Paciente.Telefone,
+                    a.Profissional.Nome,
+                    a.Servico.Nome,
+                    a.DataHoraInicio,
+                    a.DataHoraFim,
+                    a.Status.ToString()))
+                .ToList();
+
+            return Ok(resposta);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Parâmetros inválidos",
+                Detail = ex.Message,
+                Status = StatusCodes.Status400BadRequest
+            });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new ProblemDetails
+            {
+                Title = "Profissional não encontrado",
+                Detail = ex.Message,
+                Status = StatusCodes.Status404NotFound
+            });
+        }
+    }
 
     [HttpGet("{id:int}")]
     public async Task<ActionResult<AgendamentoResponse>> ObterPorId(
